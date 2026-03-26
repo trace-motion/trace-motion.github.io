@@ -1,0 +1,254 @@
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+body {
+  /* font-family: 'Google Sans', sans-serif; */
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 16px;
+  margin: 2rem;
+  text-align: center;
+}
+
+
+
+.btn-group button {
+  padding: 0.5em 0.75em;
+  margin: 0.4em 0.4em;
+  min-width: 12ch;
+  background-color: #ddd;
+  color: #333;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-group button:not(:last-child) {
+  border-right: none; /* Prevent double borders */
+}
+
+/* Clear floats (clearfix hack) */
+.btn-group:after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+/* Add a background color on hover */
+.btn-group button:hover {
+  background-color: #7cb7d7;
+}
+
+.btn-group button.on {
+  background-color: #0077b6;
+  color: white;
+}
+
+h2 {
+  margin-top: 80px;
+}
+
+p {
+  margin-top: 20px;
+  margin-bottom: 5px;
+  line-height: 25px;
+}
+
+.authors {
+  display: flex;
+  justify-content: space-evenly;
+  text-align: center;
+}
+
+pre {
+  text-align: left;
+  display: block;
+  overflow: auto;
+  background: #F6F8FA;
+}
+
+code {
+  overflow: auto;
+  color: #5B6F82;
+}
+
+img {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.teaser .glide video {
+  border-radius: 12px;
+}
+
+/* links */
+.links {
+  text-align: center;
+}
+
+.links a {
+	color: #6b747b;
+	text-decoration: underline;
+}
+
+.links a:hover {
+	color: #6b747b;
+	text-decoration: underline;
+}
+
+.links .btn-solid-lg {
+	display: inline-block;
+	padding: 0.5rem 1rem 0.5rem 1rem;
+	border: 1px solid #0077b6;
+	border-radius: 15px;
+	background-color: #0077b6;
+	color: #ffffff;
+	font-weight: 500;
+	font-size: 1rem;
+	line-height: 0;
+	text-decoration: none;
+	transition: all 0.2s;
+	margin-bottom: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.links .btn-solid-lg:hover {
+	border: 1px solid #0077b6;
+	background-color: transparent;
+	color: #0077b6; /* needs to stay here because of the color property of a tag */
+	text-decoration: none;
+}
+
+@media screen and (max-width: 800px) {
+  .btn-group-app, .btn-group-comp, .btn-group-comp-video {
+    text-align: center;
+  }
+  .btn-app-video {
+    width: 80%;
+  }
+  /* .container {
+    position: relative;
+    margin: auto;
+    max-width: 100%;
+    text-align: left;
+  } */
+  video::-webkit-media-controls {
+    display: none;
+  }
+}
+@media screen and (min-width: 801px) {
+  .btn-app-video {
+    width: 19%;
+  }
+  /* .btn-comp-video {
+    width: 24%;
+  } */
+  /* .btn-sample-video {
+    width: 32%;
+  } */
+  /* .container {
+    position: relative;
+    margin: auto;
+    max-width: 1600px;
+    text-align: left;
+  } */
+}
+
+
+/* My own style */
+#maggie-icon {
+  height: 2em;
+  margin: 0 0.5em -0.5em 0;
+}
+
+.publication-title {
+  font-family: 'Google Sans', sans-serif;
+}
+
+.publication-authors {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.author-block {
+  flex: 1; 
+}
+
+.company-block {
+  font-style: italic;
+}
+
+#conference {
+  color: red;
+  font-weight: bold;
+}
+
+.link-block {
+  padding: 0 0.5em;
+}
+
+.maggie {
+  font-weight: bold !important;
+  color: rgb(239 192 5);
+}
+
+.highlight {
+  font-weight: bold !important;
+  font-style: italic !important;
+  color: cornflowerblue;
+}
+
+img#overall {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.sub-dataset {
+  text-align: left;
+}
+
+.columns.inside {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.btn-sample-video {
+  width: 100%;
+}
+
+.btn-comp-video {
+  width: 100%;
+}
+
+.btn-comp-method {
+  width: 100%;
+}
+
+.footer .icon-link {
+  font-size: 25px;
+  color: #000;
+}
+
+#glide-container {
+  max-width: 800px;
+}
+
+.notation {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.full-width-img {
+  width: 100%;
+  height: auto;
+}
+
+.video-16-9 {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
