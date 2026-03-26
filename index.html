@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRACE: Object Motion Editing in Videos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1a1a2e;
+      background: #ffffff;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Layout ---- */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+    .container.wide { max-width: 1280px; }
+
+    /* ---- Hero ---- */
+    .hero {
+      text-align: center;
+      padding: 64px 0 24px;
+    }
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: #111;
+    }
+    .hero .sub { font-size: 1.15rem; color: #555; margin-bottom: 4px; font-weight: 500; }
+    .hero .sub2 { font-size: 1rem; color: #888; }
+
+    /* ---- Preview Thumbs (per-section selectors) ---- */
+    .preview-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 18px 16px;
+      background: #f3f5f9;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+    .preview-thumb {
+      width: 136px;
+      height: 86px;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      background: #e0e4ea;
+      border: 2.5px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .preview-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .preview-thumb.active {
+      border-color: #4a8fd9;
+      box-shadow: 0 0 0 1.5px #4a8fd9;
+    }
+
+    /* ---- Section ---- */
+    .section {
+      padding: 52px 0;
+      border-top: 1px solid #e6e8ec;
+    }
+    .section:first-of-type { border-top: none; }
+    .section-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 28px;
+      color: #111;
+    }
+    .section-subtitle {
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 32px 0 20px;
+      color: #333;
+    }
+    .section-note {
+      text-align: left;
+      font-size: 0.88rem;
+      color: #777;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    /* (example buttons removed - using preview thumbs instead) */
+
+    /* ---- Prompt Box ---- */
+    .prompt-box {
+      background: #eef3ff;
+      border-radius: 12px;
+      padding: 14px 22px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Bradley Hand', cursive;
+      font-size: 1.05rem;
+      color: #2a5298;
+      font-weight: 500;
+      font-style: normal;
+      line-height: 1.5;
+    }
+
+    /* ---- Video Grids ---- */
+    .video-grid {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .video-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .video-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .video-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .video-card {}
+    .video-card .label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .video-card video,
+    .video-card img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+      background: #eee;
+    }
+    .video-card video { aspect-ratio: 16 / 9; object-fit: cover; }
+
+    /* ---- Input Row (input + prompt side by side) ---- */
+    .input-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .input-row .video-card { flex: 1; }
+    .input-row .prompt-col {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100%;
+    }
+    .input-row .prompt-col .label { margin-bottom: 6px; }
+    .input-row .prompt-col .prompt-box { margin-bottom: 0; flex: 1; display: flex; align-items: center; justify-content: center; }
+
+    /* ---- Row with vertical label ---- */
+    .labeled-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+    .labeled-row .video-grid { flex: 1; }
+    .labeled-row .v-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-weight: 600;
+      font-size: 0.78rem;
+      color: #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 10px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ---- Application sub-labels ---- */
+    .app-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 4px;
+      text-align: left;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.6rem; }
+      .video-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+      .video-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+      .input-row { flex-direction: column; }
+      .preview-thumb { width: 100px; height: 63px; }
+      .container { padding: 0 16px; }
+    }
+    @media (max-width: 480px) {
+      .video-grid.cols-2 { grid-template-columns: 1fr; }
+      .preview-thumb { width: 80px; height: 50px; border-radius: 8px; }
+    }
+
+    /* ---- Nav Anchors ---- */
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0 10px;
+    }
+    .nav-links a {
+      font-size: 0.85rem;
+      color: #3b7dd8;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 4px 0;
+      border-bottom: 1.5px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .nav-links a:hover { border-bottom-color: #3b7dd8; }
+    .nav-links .sep { color: #ccc; user-select: none; }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!-- HERO                                                             -->
+<!-- ================================================================ -->
+<div class="hero">
+  <div class="container">
+    <h1>TRACE: Object Motion Editing in Videos with First-Frame Trajectory Guidance</h1>
+    <div class="sub">Anonymous Submission</div>
+    <!-- <div class="sub2">Submission #8156</div> -->
+    
+    <div class="nav-links" style="margin-top:24px;">
+      <a href="#sec-our-single">Our Results (First-Frame Path Design)</a> <span class="sep">|</span>
+      <a href="#sec-our-multi">Multiple Path Designs for Same Input</a> <span class="sep">|</span>
+      <a href="#sec-baselines">Full Pipeline Comparison with Baselines</a> <span class="sep">|</span>
+      <a href="#sec-application">Applications</a> <span class="sep">|</span>
+      <a href="#sec-two-objects">Zero shot multi object editing</a> <span class="sep">|</span>
+      <a href="#sec-stage1">Cross-View Motion Transformation - Baseline Comparison</a> <span class="sep">|</span>
+      <a href="#sec-stage2">Video Resynthesis - Baseline Comparison</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================ -->
+<!-- TEASER VIDEO                                                      -->
+<!-- ================================================================ -->
+<div class="section">
+  <div class="container" style="text-align:center;">
+    <!-- <h2 class="section-title">Teaser</h2> -->
+    <video
+      src="resources/video_teaser/web_teaser3.mp4"
+      autoplay
+      loop
+      muted
+      playsinline
+      style="width:100%;max-width:960px;border-radius:2px;"
+    ></video>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- OUR SINGLE PATH DESIGN                                           -->
+<!-- ================================================================ -->
+<div class="section" id="sec-our-single">
+  <div class="container">
+    <h2 class="section-title">Our Results (First-Frame Path Design)</h2>
+    <div class="preview-gallery" id="our-only-buttons">
+      <!-- Thumbs rendered dynamically -->
+    </div>
+    <div id="our-only-content">
+      <div class="prompt-box" id="our-only-prompt">Loading prompts...</div>
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <div class="label">Input Video</div>
+          <video id="our-only-video-left" autoplay muted loop playsinline controls>
+            <source id="our-only-video-left-src" src="" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">First-Frame Path</div>
+          <img id="our-only-first-frame" src="" alt="First Frame">
+        </div>
+        <div class="video-card">
+          <div class="label">Edited Video</div>
+          <video id="our-only-video-right" autoplay muted loop playsinline controls>
+            <source id="our-only-video-right-src" src="" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <p class="section-note">Each example shows: input video, first frame with trajectory, and edited video.</p>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- OUR MULTIPLE PATH DESIGN                                         -->
+<!-- ================================================================ -->
+<div class="section" id="sec-our-multi">
+  <div class="container">
+    <h2 class="section-title">Multiple Path Designs for Same Input</h2>
+    <div class="preview-gallery" id="qual-thumbs">
+      <div class="preview-thumb thumb-qual active" onclick="selectQualExample('example1')">
+        <video src="resources/qual_our_result/example1/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-qual" onclick="selectQualExample('example2')">
+        <video src="resources/qual_our_result/example2/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-qual" onclick="selectQualExample('example3')">
+        <video src="resources/qual_our_result/example3/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-qual" onclick="selectQualExample('example4')">
+        <video src="resources/qual_our_result/example4/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+    <div id="qual-content">
+      <div class="input-row">
+        <div class="video-card">
+          <div class="label">Input Video</div>
+          <video id="qual-input" autoplay muted loop playsinline controls>
+            <source id="qual-input-src" src="resources/qual_our_result/example1/input.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="prompt-col">
+          <div class="label">Prompt</div>
+          <div class="prompt-box" id="qual-prompt" style="margin-bottom:0"></div>
+        </div>
+      </div>
+      <!-- First-Frame Paths -->
+      <div class="labeled-row">
+        <div class="video-grid cols-3">
+          <div class="video-card">
+            <img id="qual-box1" src="resources/qual_our_result/example1/box1.jpg" alt="Box 1">
+          </div>
+          <div class="video-card">
+            <img id="qual-box2" src="resources/qual_our_result/example1/box2.jpg" alt="Box 2">
+          </div>
+          <div class="video-card">
+            <img id="qual-box3" src="resources/qual_our_result/example1/box3.jpg" alt="Box 3">
+          </div>
+        </div>
+        <div class="v-label">First-Frame Path</div>
+      </div>
+      <!-- Generated Videos -->
+      <div class="labeled-row">
+        <div class="video-grid cols-3">
+          <div class="video-card">
+            <video id="qual-out1" autoplay muted loop playsinline controls>
+              <source id="qual-out-src1" src="resources/qual_our_result/example1/out1.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="video-card">
+            <video id="qual-out2" autoplay muted loop playsinline controls>
+              <source id="qual-out-src2" src="resources/qual_our_result/example1/out2.mp4" type="video/mp4">
+            </video>
+          </div>
+          <div class="video-card">
+            <video id="qual-out3" autoplay muted loop playsinline controls>
+              <source id="qual-out-src3" src="resources/qual_our_result/example1/out3.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="v-label">Edited Video</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- FULL PIPELINE COMPARISON WITH BASELINES                          -->
+<!-- ================================================================ -->
+<div class="section" id="sec-baselines">
+  <div class="container">
+    <h2 class="section-title">Full Pipeline Comparison with Baselines</h2>
+    <div class="preview-gallery" id="baseline-thumbs">
+      <div class="preview-thumb thumb-baseline active" onclick="selectBaselineExample('example1')">
+        <video src="resources/baselines/example1/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-baseline" onclick="selectBaselineExample('example2')">
+        <video src="resources/baselines/example2/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-baseline" onclick="selectBaselineExample('example3')">
+        <video src="resources/baselines/example3/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-baseline" onclick="selectBaselineExample('example4')">
+        <video src="resources/baselines/example4/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-baseline" onclick="selectBaselineExample('example5')">
+        <video src="resources/baselines/example5/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-baseline" onclick="selectBaselineExample('example6')">
+        <video src="resources/baselines/example6/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+    <div id="baseline-content">
+      <div class="input-row">
+        <div class="video-card">
+          <div class="label">Input Video</div>
+          <video id="baseline-input" autoplay muted loop playsinline controls>
+            <source id="baseline-input-src" src="resources/baselines/example1/input.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">First-Frame Path</div>
+          <img id="baseline-motion-path" src="resources/baselines/example1/first.jpg" alt="First-Frame Path">
+        </div>
+        <div class="prompt-col">
+          <div class="label">Prompt</div>
+          <div class="prompt-box" id="baseline-prompt" style="margin-bottom:0"></div>
+        </div>
+      </div>
+      <!-- I2V Row -->
+      <div class="video-grid cols-4">
+        <div class="video-card">
+          <div class="label" id="baseline-i2v-label-1">Magic Motion</div>
+          <video id="baseline-i2v-1" autoplay muted loop playsinline controls>
+            <source id="baseline-i2v-src-1" src="resources/baselines/example1/magic_motion.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-i2v-label-2">Wan Move</div>
+          <video id="baseline-i2v-2" autoplay muted loop playsinline controls>
+            <source id="baseline-i2v-src-2" src="resources/baselines/example1/wan_move.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-i2v-label-3">Motion Canvas</div>
+          <video id="baseline-i2v-3" autoplay muted loop playsinline controls>
+            <source id="baseline-i2v-src-3" src="resources/baselines/example1/motion_canvas.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-i2v-label-4">PISCO</div>
+          <video id="baseline-i2v-4" autoplay muted loop playsinline controls>
+            <source id="baseline-i2v-src-4" src="resources/baselines/example1/pisco.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <!-- T2V Row -->
+      <div class="video-grid cols-4">
+        <div class="video-card">
+          <div class="label" id="baseline-t2v-label-1">Hunyuan</div>
+          <video id="baseline-t2v-1" autoplay muted loop playsinline controls>
+            <source id="baseline-t2v-src-1" src="resources/baselines/example1/hunyuan.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-t2v-label-2">VACE</div>
+          <video id="baseline-t2v-2" autoplay muted loop playsinline controls>
+            <source id="baseline-t2v-src-2" src="resources/baselines/example1/vace.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-t2v-label-3">GenCompositor</div>
+          <video id="baseline-t2v-3" autoplay muted loop playsinline controls>
+            <source id="baseline-t2v-src-3" src="resources/baselines/example1/compositor.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="baseline-t2v-label-4">Trace (Ours)</div>
+          <video id="baseline-t2v-4" autoplay muted loop playsinline controls>
+            <source id="baseline-t2v-src-4" src="resources/baselines/example1/our.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <p class="section-note">The full pipeline editing is applied to the input video, incorporating both cross-view motion transformation and video resynthesis.</p>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- APPLICATION                                                      -->
+<!-- ================================================================ -->
+<div class="section" id="sec-application">
+  <div class="container">
+    <h2 class="section-title">Applications</h2>
+
+    <!-- Object Insertion -->
+    <h3 class="section-subtitle">Object Insertion with Motion Control</h3>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Adding a deer</div>
+          <div style="position: relative;">
+            <video autoplay muted loop playsinline controls>
+              <source src="resources/application/adding/52_6_original.mp4" type="video/mp4">
+            </video>
+            <img
+              src="resources/application/adding/52_6_first.jpg"
+              alt="Overlay reference"
+              style="position: absolute; left: 2px; bottom: 2px; width: 30%; min-width: 56px; border: 1px solid #ffffff; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); pointer-events: none;"
+            >
+          </div>
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Adding a child</div>
+          <div style="position: relative;">
+            <video autoplay muted loop playsinline controls>
+              <source src="resources/application/adding/541463173_0_original.mp4" type="video/mp4">
+            </video>
+            <img
+              src="resources/application/adding/541463173_0_first.jpg"
+              alt="Overlay reference"
+              style="position: absolute; left: 2px; bottom: 2px; width: 30%; min-width: 56px; border: 1px solid #ffffff; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); pointer-events: none;"
+            >
+          </div>
+
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Adding a man</div>
+          <div style="position: relative;">
+            <video autoplay muted loop playsinline controls>
+              <source src="resources/application/adding/walk_adding.mp4" type="video/mp4">
+            </video>
+            <img
+              src="resources/application/adding/walk_first.jpg"
+              alt="Overlay reference"
+              style="position: absolute; left: 2px; bottom: 2px; width: 30%; min-width: 56px; border: 1px solid #ffffff; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); pointer-events: none;"
+            >
+          </div>
+
+
+        </div>
+      </div>
+      <div class="v-label">Input Video</div>
+    </div>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/adding/52_6.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/adding/541463173_0.mp4" type="video/mp4">
+          </video>
+          
+          
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/adding/walk_adding_d316cc6bbd13150500d1aebab7efcb4a_5.mp4" type="video/mp4">
+          </video>
+
+        </div>
+      </div>
+      <div class="v-label">Edited Video</div>
+    </div>
+
+    <!-- Object Editing -->
+    <h3 class="section-subtitle">Object Editing</h3>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Rainbow smoke</div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/238878895_original.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Rainbow turtle</div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/492234386_original.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Wearing VR headset</div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/input1.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="v-label">Input Video</div>
+    </div>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/238878895.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/492234386.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/output1.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="v-label">Edited Video</div>
+    </div>
+
+    <!-- Object Replacement -->
+    <h3 class="section-subtitle">Object Replacement</h3>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;"> Child &rarr; Penguin</div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/3645.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Buffalo &rarr; Tiger </div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/277502403_original.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="app-label" style="text-align: center;">Kite &rarr; Airplane</div>
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/input2.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="v-label">Input Video</div>
+    </div>
+    <div class="labeled-row">
+      <div class="video-grid cols-3">
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/3645_replace.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/277502403.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <video autoplay muted loop playsinline controls>
+            <source src="resources/application/editting/output2.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <div class="v-label">Edited Video</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 2 OBJECTS                                                        -->
+<!-- ================================================================ -->
+<div class="section" id="sec-two-objects">
+  <div class="container">
+    <h2 class="section-title">Zero shot multi object editing</h2>
+    <div class="preview-gallery" id="twoobj-thumbs">
+      <div class="preview-thumb thumb-twoobj active" onclick="selectTwoObj('example1')">
+        <video src="resources/2_object/input_video/453212399.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-twoobj" onclick="selectTwoObj('example2')">
+        <video src="resources/2_object/input_video/209777841.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-twoobj" onclick="selectTwoObj('example3')">
+        <video src="resources/2_object/input_video/3645.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+    <div class="video-grid cols-3">
+      <div class="video-card">
+        <div class="label">Input Video</div>
+        <video id="twoobj-left" autoplay muted loop playsinline controls>
+          <source id="twoobj-left-src" src="resources/2_object/input_video/453212399.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="video-card">
+        <div class="label">First-Frame Path</div>
+        <img id="twoobj-frame" src="resources/2_object/first_frame/453212399.jpg" alt="Two objects frame">
+      </div>
+      <div class="video-card">
+        <div class="label">Edited Video</div>
+        <video id="twoobj-right" autoplay muted loop playsinline controls>
+          <source id="twoobj-right-src" src="resources/2_object/edit_video/453212399.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    <p class="section-note">Even though our method is trained on single object editing, it can be applied to multi object editing with zero-shot manner.</p>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- CROSS-VIEW MOTION TRANSFORMATION                                 -->
+<!-- ================================================================ -->
+<div class="section" id="sec-stage1">
+  <div class="container">
+    <h2 class="section-title">Cross-View Motion Transformation - Baseline Comparison</h2>
+    
+    <div class="preview-gallery" id="stage1-thumbs">
+      <div class="preview-thumb thumb-stage1 active" onclick="selectStage1('example1')">
+        <video src="resources/stage1/example1/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage1" onclick="selectStage1('example2')">
+        <video src="resources/stage1/example2/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage1" onclick="selectStage1('example3')">
+        <video src="resources/stage1/example3/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+    <div id="stage1-content">
+      <div class="input-row">
+        <div class="video-card">
+          <div class="label">Input Video</div>
+          <video id="stage1-input" autoplay muted loop playsinline controls>
+            <source id="stage1-input-src" src="resources/stage1/example1/input.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">First-Frame Path</div>
+          <img id="stage1-motion-path" src="resources/stage1/example1/first.jpg" alt="First-Frame Path">
+        </div>
+        <div class="prompt-col">
+          <div style="height: 140px;"></div>
+          <div id="stage1-prompt" style="display: none;"></div>
+        </div>
+      </div>
+      <div class="video-grid cols-4">
+        <div class="video-card">
+          <div class="label">Interpolation</div>
+          <video id="stage1-inter" autoplay muted loop playsinline controls>
+            <source id="stage1-inter-src" src="resources/stage1/example1/inter.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">MegaSAM based warping</div>
+          <video id="stage1-mega" autoplay muted loop playsinline controls>
+            <source id="stage1-mega-src" src="resources/stage1/example1/mega.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">DepthAnything-v3 based warping</div>
+          <video id="stage1-depth" autoplay muted loop playsinline controls>
+            <source id="stage1-depth-src" src="resources/stage1/example1/depth.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">TRACE (Ours)</div>
+          <video id="stage1-ours" autoplay muted loop playsinline controls>
+            <source id="stage1-ours-src" src="resources/stage1/example1/our.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <p class="section-note">The red point is marked to highlight a reference point for easy to draw correspondance.</p>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- VIDEO RESYNTHESIS                                                -->
+<!-- ================================================================ -->
+<div class="section" id="sec-stage2">
+  <div class="container">
+    <h2 class="section-title">Video Resynthesis - Baseline Comparison</h2>
+    <div class="preview-gallery" id="stage2-thumbs">
+      <div class="preview-thumb thumb-stage2 active" onclick="selectStage2('example1')">
+        <video src="resources/stage2/example1/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example2')">
+        <video src="resources/stage2/example2/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example3')">
+        <video src="resources/stage2/example3/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example4')">
+        <video src="resources/stage2/example4/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example6')">
+        <video src="resources/stage2/example6/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example7')">
+        <video src="resources/stage2/example7/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example8')">
+        <video src="resources/stage2/example8/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example9')">
+        <video src="resources/stage2/example9/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+      <div class="preview-thumb thumb-stage2" onclick="selectStage2('example10')">
+        <video src="resources/stage2/example10/input.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+    <div id="stage2-content">
+      <div class="input-row">
+        <div class="video-card">
+          <div class="label">Input Video</div>
+          <video id="stage2-input" autoplay muted loop playsinline controls>
+            <source id="stage2-input-src" src="resources/stage2/example1/input.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label">Masked Video</div>
+          <video id="stage2-masked" autoplay muted loop playsinline controls>
+            <source id="stage2-masked-src" src="resources/stage2/example1/masked.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="prompt-col">
+          <div class="label">Prompt</div>
+          <div class="prompt-box" id="stage2-prompt" style="margin-bottom:0"></div>
+        </div>
+      </div>
+      <!-- I2V Row -->
+      <div class="video-grid cols-4">
+        <div class="video-card">
+          <div class="label" id="stage2-i2v-label-1">Magic Motion</div>
+          <video id="stage2-i2v-1" autoplay muted loop playsinline controls>
+            <source id="stage2-i2v-src-1" src="resources/stage2/example1/magic_motion.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-i2v-label-2">Wan Move</div>
+          <video id="stage2-i2v-2" autoplay muted loop playsinline controls>
+            <source id="stage2-i2v-src-2" src="resources/stage2/example1/wan_move.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-i2v-label-3">Motion Canvas</div>
+          <video id="stage2-i2v-3" autoplay muted loop playsinline controls>
+            <source id="stage2-i2v-src-3" src="resources/stage2/example1/motion_canvas.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-i2v-label-4">PISCO</div>
+          <video id="stage2-i2v-4" autoplay muted loop playsinline controls>
+            <source id="stage2-i2v-src-4" src="resources/stage2/example1/pisco.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <!-- T2V Row -->
+      <div class="video-grid cols-4">
+        <div class="video-card">
+          <div class="label" id="stage2-t2v-label-1">Hunyuan</div>
+          <video id="stage2-t2v-1" autoplay muted loop playsinline controls>
+            <source id="stage2-t2v-src-1" src="resources/stage2/example1/hunyuan.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-t2v-label-2">VACE</div>
+          <video id="stage2-t2v-2" autoplay muted loop playsinline controls>
+            <source id="stage2-t2v-src-2" src="resources/stage2/example1/vace.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-t2v-label-3">GenCompositor</div>
+          <video id="stage2-t2v-3" autoplay muted loop playsinline controls>
+            <source id="stage2-t2v-src-3" src="resources/stage2/example1/gencompositor.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-card">
+          <div class="label" id="stage2-t2v-label-4">TRACE (Ours)</div>
+          <video id="stage2-t2v-4" autoplay muted loop playsinline controls>
+            <source id="stage2-t2v-src-4" src="resources/stage2/example1/our.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+    <p class="section-note">We compare solely against resynthesis baselines, conditioned on the object boxes from the input video.</p>
+  </div>
+</div>
+
+<div style="height:60px;"></div>
+
+<!-- ================================================================ -->
+<!-- JAVASCRIPT                                                       -->
+<!-- ================================================================ -->
+<script>
+/* ---- Scroll helper ---- */
+function scrollToSection(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---- Generic thumb activation ---- */
+function activateThumbs(className, activeIndex) {
+  var thumbs = document.getElementsByClassName(className);
+  for (var i = 0; i < thumbs.length; i++) {
+    thumbs[i].classList.remove('active');
+  }
+  if (activeIndex >= 0 && activeIndex < thumbs.length) {
+    thumbs[activeIndex].classList.add('active');
+  }
+}
+
+/* ---- Video loader helper ---- */
+function loadVid(videoId, srcId, path) {
+  var video = document.getElementById(videoId);
+  var src = document.getElementById(srcId);
+  if (video && src) {
+    video.pause();
+    src.setAttribute('src', path);
+    video.load();
+    video.currentTime = 0;
+    video.play();
+  }
+}
+
+/* ================================================================ */
+/* OUR SINGLE PATH                                                  */
+/* ================================================================ */
+var ourOnlyExamples = [];
+var ourOnlyPrompts = {};
+var selectedOurOnly = '';
+var ourOnlyDefaults = ['1','2','3','519381265', '455489627','3363','516703313','210171600'];
+var ourOnlyPromptFallback = {
+  "1": "A child running in the living room",
+  "2": "A bird flying a head of a cat",
+  "3": "A child riding a bicycle,  mother running behind",
+  "519381265": "A child ridding a scooter with father",
+  "3363": "A girl ridding a bicycle, mother standing behind",
+  // "449960875": "A car running while a child walking",
+  "455489627": "A woman walking in the beach",
+  "516703313": "A cat play with an automatic vacuum cleaner",
+  // "210171600": "A man playing skateboard in the street"
+};
+
+function initOurOnly() {
+  fetch('resources/our_only/prompt.json')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(data) { setupOurOnly(data); })
+    .catch(function() { setupOurOnly(ourOnlyPromptFallback); });
+}
+
+function setupOurOnly(promptData) {
+  ourOnlyPrompts = {};
+  if (Array.isArray(promptData)) {
+    for (var i = 0; i < promptData.length; i++) {
+      if (promptData[i] && promptData[i].name_video) {
+        ourOnlyPrompts[String(promptData[i].name_video)] = String(promptData[i].text || '');
+      }
+    }
+  } else if (promptData && typeof promptData === 'object') {
+    for (var k in promptData) {
+      if (promptData.hasOwnProperty(k)) {
+        var v = promptData[k];
+        ourOnlyPrompts[k] = typeof v === 'string' ? v : (v && v.text ? String(v.text) : String(v));
+      }
+    }
+  }
+  ourOnlyExamples = Object.keys(ourOnlyPrompts);
+  if (!ourOnlyExamples.length) ourOnlyExamples = ourOnlyDefaults.slice();
+  ourOnlyExamples.sort(function(a,b) {
+    var na = Number(a), nb = Number(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  if (ourOnlyExamples.length > 1) ourOnlyExamples.pop();
+  selectedOurOnly = ourOnlyExamples[0] || '';
+  renderOurOnlyButtons();
+  updateOurOnly();
+}
+
+function renderOurOnlyButtons() {
+  var c = document.getElementById('our-only-buttons');
+  if (!c) return;
+  c.innerHTML = '';
+  for (var i = 0; i < ourOnlyExamples.length; i++) {
+    var thumb = document.createElement('div');
+    thumb.className = 'preview-thumb thumb-our-only' + (i === 0 ? ' active' : '');
+    var vid = document.createElement('video');
+    vid.src = 'resources/our_only/input_video/' + ourOnlyExamples[i] + '.mp4';
+    vid.autoplay = true; vid.muted = true; vid.loop = true; vid.playsInline = true;
+    vid.setAttribute('playsinline', '');
+    thumb.appendChild(vid);
+    thumb.onclick = (function(name) { return function() { selectOurOnly(name); }; })(ourOnlyExamples[i]);
+    c.appendChild(thumb);
+  }
+}
+
+function selectOurOnly(name) {
+  selectedOurOnly = name;
+  var idx = ourOnlyExamples.indexOf(name);
+  activateThumbs('thumb-our-only', idx);
+  updateOurOnly();
+}
+
+function updateOurOnly() {
+  if (!selectedOurOnly) return;
+  var p = document.getElementById('our-only-prompt');
+  if (p) p.textContent = ourOnlyPrompts[selectedOurOnly] || '';
+  loadVid('our-only-video-left', 'our-only-video-left-src', 'resources/our_only/input_video/' + selectedOurOnly + '.mp4');
+  loadVid('our-only-video-right', 'our-only-video-right-src', 'resources/our_only/edit_video/' + selectedOurOnly + '.mp4');
+  var img = document.getElementById('our-only-first-frame');
+  if (img) img.src = 'resources/our_only/first_frame/' + selectedOurOnly + '.jpg';
+}
+
+/* ================================================================ */
+/* QUALITATIVE (MULTIPLE PATH)                                      */
+/* ================================================================ */
+var qualPrompts = {
+  
+  'example1': 'Happy child, girl with kite in her hands, runs across field on green grass in summer. Kid plays outdoors in park at sunset. Happy family, children dreams. Child playing in nature. Children holiday & good aesthetics',
+  'example2': 'A Loggerhead Sea Turtle is seen swimming gracefully in the vibrant coral reef of the Caribbean Sea around Curacao. The turtle, with its distinctive greenish-brown shell and flippers, navigates through the colorful coral formations. The scene is set against a backdrop of clear blue water',
+  'example3': 'A vibrant green parrot with a striking red beak and orange eyes perches gracefully on a slender tree branch. The parrot feathers are a rich, lush green, with hints of red and blue near its wings. The background is a dense, verdant forest, filled with various shades of green foliage that create a lush, natural canopy',
+  'example4': 'A turtle gracefully swims in the clear, blue waters of a vibrant coral reef. The turtle shell, adorned with intricate patterns of brown and black, glistens under the sunlight filtering through the water. Surrounding the turtle are various corals and rocks, adding texture and color to the underwater landscape'
+};
+var selectedQual = 'example1';
+
+function selectQualExample(ex) {
+  selectedQual = ex;
+  var idx = ['example1','example2','example3','example4'].indexOf(ex);
+  activateThumbs('thumb-qual', idx);
+  updateQual();
+}
+
+function updateQual() {
+  var p = document.getElementById('qual-prompt');
+  if (p) p.textContent = qualPrompts[selectedQual] || '';
+  loadVid('qual-input', 'qual-input-src', 'resources/qual_our_result/' + selectedQual + '/input.mp4');
+  for (var i = 1; i <= 3; i++) {
+    document.getElementById('qual-box' + i).src = 'resources/qual_our_result/' + selectedQual + '/box' + i + '.jpg';
+    loadVid('qual-out' + i, 'qual-out-src' + i, 'resources/qual_our_result/' + selectedQual + '/out' + i + '.mp4');
+  }
+}
+
+/* ================================================================ */
+/* BASELINES                                                        */
+/* ================================================================ */
+var baselinePrompts = {
+  'example1': 'A beautiful fish swims in the turquoise blue ocean. The scene is captured in slow motion, showcasing the turtle graceful movements underwater.',
+  'example2': 'A child wearing a toy airplane and flying in the middle of the air',
+  'example3': 'A penguin walking on a rocky outcrop by the sea, with waves crashing against the rocks in the background',
+  'example4': 'A girl riding a horse toy and flying in the middle of the air',
+  'example5': 'A zip car driving on a road with trees in the background',
+  'example6': 'A chicken flying in the middle of the air',
+  'example7': 'A fish swimming in the ocean'
+};
+var selectedBaseline = 'example1';
+var baselineI2V = ['magic_motion','wan_move','motion_canvas','pisco'];
+var baselineT2V = ['hunyuan','vace','compositor','our'];
+var baselineI2VLabels = { magic_motion:'Magic Motion', wan_move:'Wan Move', motion_canvas:'Motion Canvas', pisco:'PISCO' };
+var baselineT2VLabels = { hunyuan:'Hunyuan', vace:'VACE', compositor:'GenCompositor', our:'Trace (Ours)' };
+
+function selectBaselineExample(ex) {
+  selectedBaseline = ex;
+  var idx = ['example1','example2','example3','example4','example5','example6'].indexOf(ex);
+  activateThumbs('thumb-baseline', idx);
+  updateBaseline();
+}
+
+function updateBaseline() {
+  var p = document.getElementById('baseline-prompt');
+  if (p) p.textContent = baselinePrompts[selectedBaseline] || '';
+  loadVid('baseline-input', 'baseline-input-src', 'resources/baselines/' + selectedBaseline + '/input.mp4');
+  var img = document.getElementById('baseline-motion-path');
+  if (img) img.src = 'resources/baselines/' + selectedBaseline + '/first.jpg';
+  for (var i = 0; i < 4; i++) {
+    var el = document.getElementById('baseline-i2v-label-' + (i+1));
+    if (el) el.textContent = baselineI2VLabels[baselineI2V[i]];
+    loadVid('baseline-i2v-' + (i+1), 'baseline-i2v-src-' + (i+1), 'resources/baselines/' + selectedBaseline + '/' + baselineI2V[i] + '.mp4');
+  }
+  for (var j = 0; j < 4; j++) {
+    var el2 = document.getElementById('baseline-t2v-label-' + (j+1));
+    if (el2) el2.textContent = baselineT2VLabels[baselineT2V[j]];
+    loadVid('baseline-t2v-' + (j+1), 'baseline-t2v-src-' + (j+1), 'resources/baselines/' + selectedBaseline + '/' + baselineT2V[j] + '.mp4');
+  }
+}
+
+/* ================================================================ */
+/* TWO OBJECTS                                                      */
+/* ================================================================ */
+var twoobjMap = { 'example1':'453212399', 'example2':'209777841', 'example3':'3645' };
+var selectedTwoobj = 'example1';
+
+function selectTwoObj(ex) {
+  selectedTwoobj = ex;
+  var idx = ['example1','example2','example3'].indexOf(ex);
+  activateThumbs('thumb-twoobj', idx);
+  updateTwoObj();
+}
+
+function updateTwoObj() {
+  var name = twoobjMap[selectedTwoobj] || '453212399';
+  loadVid('twoobj-left', 'twoobj-left-src', 'resources/2_object/input_video/' + name + '.mp4');
+  loadVid('twoobj-right', 'twoobj-right-src', 'resources/2_object/edit_video/' + name + '.mp4');
+  var img = document.getElementById('twoobj-frame');
+  if (img) img.src = 'resources/2_object/first_frame/' + name + '.jpg';
+}
+
+/* ================================================================ */
+/* STAGE 1                                                          */
+/* ================================================================ */
+var stage1Prompts = {
+  'example1': 'A young, active couple is jogging together in the mountains during the morning. They are dressed in athletic gear. The couple is running on a dirt path surrounded by lush greenery and majestic mountains in the background.',
+  'example2': 'A snowplow truck is driving through a snowy forest at night, leaving a trail of freshly cleared snow behind. The truck is illuminated by its headlights, cutting through the darkness.',
+  'example3': 'A snowboarder in a vibrant yellow jacket and black pants is skillfully navigating down a snow-covered slope at a ski resort.',
+  'example4': 'Girl walking through the forest on the riverbank on a sunny summer day & fair aesthetics'
+};
+var selectedStage1 = 'example1';
+
+function selectStage1(ex) {
+  selectedStage1 = ex;
+  var idx = ['example1','example2','example3'].indexOf(ex);
+  activateThumbs('thumb-stage1', idx);
+  updateStage1();
+}
+
+function updateStage1() {
+  var p = document.getElementById('stage1-prompt');
+  if (p) p.textContent = stage1Prompts[selectedStage1] || '';
+  loadVid('stage1-input', 'stage1-input-src', 'resources/stage1/' + selectedStage1 + '/input.mp4');
+  var img = document.getElementById('stage1-motion-path');
+  if (img) img.src = 'resources/stage1/' + selectedStage1 + '/first.jpg';
+  var methods = [['inter','inter'],['mega','mega'],['depth','depth'],['ours','our']];
+  for (var i = 0; i < methods.length; i++) {
+    loadVid('stage1-' + methods[i][0], 'stage1-' + methods[i][0] + '-src', 'resources/stage1/' + selectedStage1 + '/' + methods[i][1] + '.mp4');
+  }
+}
+
+/* ================================================================ */
+/* STAGE 2                                                          */
+/* ================================================================ */
+var stage2Prompts = {
+  'example1': 'A boy riding a bike in the street',
+  'example2': 'A rhino walking in the park',
+  'example3': 'Goats running in the road',
+  'example4': 'A mallard duck running in the grass',
+  'example6': 'Chickens eating in the grass',
+  'example7': 'A boy ridding bicycle in the street',
+  'example8': 'A turtle swimming in the ocean',
+  'example9': 'A woman walking in the field',
+  'example10': 'A cow walking in the field'
+};
+var selectedStage2 = 'example1';
+var stage2I2V = ['magic_motion','wan_move','motion_canvas','pisco'];
+var stage2T2V = ['hunyuan','vace','gencompositor','our'];
+var stage2I2VLabels = { magic_motion:'Magic Motion', wan_move:'Wan Move', motion_canvas:'Motion Canvas', pisco:'PISCO' };
+var stage2T2VLabels = { hunyuan:'Hunyuan', vace:'VACE', gencompositor:'GenCompositor', our:'TRACE (Ours)' };
+
+function getStage2File(method, example) {
+  if (method === 'our') return 'our.mp4';
+  if (method === 'gencompositor') return example === 'example2' ? 'gencompose.mp4' : 'gencompositor.mp4';
+  return method + '.mp4';
+}
+
+function selectStage2(ex) {
+  selectedStage2 = ex;
+  var all = ['example1','example2','example3','example4','example6','example7','example8','example9','example10'];
+  activateThumbs('thumb-stage2', all.indexOf(ex));
+  updateStage2();
+}
+
+function updateStage2() {
+  var p = document.getElementById('stage2-prompt');
+  if (p) p.textContent = stage2Prompts[selectedStage2] || '';
+  loadVid('stage2-input', 'stage2-input-src', 'resources/stage2/' + selectedStage2 + '/input.mp4');
+  loadVid('stage2-masked', 'stage2-masked-src', 'resources/stage2/' + selectedStage2 + '/masked.mp4');
+  for (var i = 0; i < 4; i++) {
+    var el = document.getElementById('stage2-i2v-label-' + (i+1));
+    if (el) el.textContent = stage2I2VLabels[stage2I2V[i]];
+    loadVid('stage2-i2v-' + (i+1), 'stage2-i2v-src-' + (i+1), 'resources/stage2/' + selectedStage2 + '/' + getStage2File(stage2I2V[i], selectedStage2));
+  }
+  for (var j = 0; j < 4; j++) {
+    var el2 = document.getElementById('stage2-t2v-label-' + (j+1));
+    if (el2) el2.textContent = stage2T2VLabels[stage2T2V[j]];
+    loadVid('stage2-t2v-' + (j+1), 'stage2-t2v-src-' + (j+1), 'resources/stage2/' + selectedStage2 + '/' + getStage2File(stage2T2V[j], selectedStage2));
+  }
+}
+
+/* ================================================================ */
+/* INIT                                                             */
+/* ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  initOurOnly();
+  selectQualExample('example1');
+  selectBaselineExample('example1');
+  selectStage1('example1');
+  selectStage2('example1');
+  selectTwoObj('example1');
+});
+</script>
+
+</body>
+</html>
