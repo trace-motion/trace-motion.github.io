@@ -34,6 +34,8 @@
       color: #111;
     }
     .hero .sub { font-size: 1.15rem; color: #555; margin-bottom: 4px; font-weight: 500; }
+    .hero .sub a { color: inherit; text-decoration: none; }
+    .hero .sub a:hover { text-decoration: underline; }
     .hero .sub2 { font-size: 1rem; color: #888; }
 
     /* ---- Preview Thumbs (per-section selectors) ---- */
@@ -234,19 +236,19 @@
   <div class="container">
     <h1>TRACE: Object Motion Editing in Videos with First-Frame Trajectory Guidance</h1>
     <div class="sub" style="margin-bottom:10px;">
-      Quynh Phung<sup>1*</sup> &nbsp;&nbsp;
-      Long Mai<sup>2</sup> &nbsp;&nbsp;
-      Cusuh Ham<sup>2</sup> &nbsp;&nbsp;
-      Feng Liu<sup>2</sup> &nbsp;&nbsp;
-      Jia-Bin Huang<sup>1</sup> &nbsp;&nbsp;
-      Aniruddha Mahapatra<sup>2</sup>
-    </div>
+      <a href="https://qqphung.github.io/" target="_blank" rel="noopener noreferrer"></a>Quynh Phung<sup>1*</sup> &nbsp;&nbsp;
+      <a href="https://mai-t-long.com/" target="_blank" rel="noopener noreferrer">Long Mai</a><sup>2</sup> &nbsp;&nbsp;
+      <a  href="https://cusuh.github.io/" target="_blank" rel="noopener noreferrer">Cusuh Ham</a><sup>2</sup> &nbsp;&nbsp;
+      <a href="https://research.adobe.com/person/feng-liu/" target="_blank" rel="noopener noreferrer"></a>Feng Liu</a><sup>2</sup> &nbsp;&nbsp;
+      <a href="https://jbhuang0604.github.io/" target="_blank" rel="noopener noreferrer"></a>Jia-Bin Huang<sup>1</sup> &nbsp;&nbsp;
+      <a href="https://anime26398.github.io/" target="_blank" rel="noopener noreferrer"></a>Aniruddha Mahapatra<sup>2</sup>
+    </div> 
     <div class="sub2">
       <sup>1</sup> University of Maryland, College Park &nbsp;&nbsp;&nbsp;
       <sup>2</sup> Adobe Research
     </div>
     
-    <div class="nav-links" style="margin-top:24px;">
+    <!-- <div class="nav-links" style="margin-top:24px;">
       <a href="#sec-our-single">Our Results (First-Frame Path Design)</a> <span class="sep">|</span>
       <a href="#sec-our-multi">Multiple Path Designs for Same Input</a> <span class="sep">|</span>
       <a href="#sec-baselines">Full Pipeline Comparison with Baselines</a> <span class="sep">|</span>
@@ -254,7 +256,7 @@
       <a href="#sec-two-objects">Zero shot multi object editing</a> <span class="sep">|</span>
       <a href="#sec-stage1">Cross-View Motion Transformation - Baseline Comparison</a> <span class="sep">|</span>
       <a href="#sec-stage2">Video Resynthesis - Baseline Comparison</a>
-    </div>
+    </div> -->
   </div>
 </div>
 
@@ -919,17 +921,14 @@ function loadVid(videoId, srcId, path) {
 var ourOnlyExamples = [];
 var ourOnlyPrompts = {};
 var selectedOurOnly = '';
-var ourOnlyDefaults = ['1','2','3','519381265', '455489627','3363','516703313','210171600'];
+var ourOnlyDefaults = ['1','2','3','3363','455489627','516703313'];
 var ourOnlyPromptFallback = {
   "1": "A child running in the living room",
   "2": "A bird flying a head of a cat",
   "3": "A child riding a bicycle,  mother running behind",
-  "519381265": "A child ridding a scooter with father",
   "3363": "A girl ridding a bicycle, mother standing behind",
-  // "449960875": "A car running while a child walking",
   "455489627": "A woman walking in the beach",
-  "516703313": "A cat play with an automatic vacuum cleaner",
-  // "210171600": "A man playing skateboard in the street"
+  "516703313": "A cat play with an automatic vacuum cleaner"
 };
 
 function initOurOnly() {
@@ -955,14 +954,16 @@ function setupOurOnly(promptData) {
       }
     }
   }
-  ourOnlyExamples = Object.keys(ourOnlyPrompts);
-  if (!ourOnlyExamples.length) ourOnlyExamples = ourOnlyDefaults.slice();
-  ourOnlyExamples.sort(function(a,b) {
-    var na = Number(a), nb = Number(b);
-    if (!isNaN(na) && !isNaN(nb)) return na - nb;
-    return a.localeCompare(b);
+  for (var d = 0; d < ourOnlyDefaults.length; d++) {
+    var exampleId = ourOnlyDefaults[d];
+    if (!ourOnlyPrompts[exampleId] && ourOnlyPromptFallback[exampleId]) {
+      ourOnlyPrompts[exampleId] = ourOnlyPromptFallback[exampleId];
+    }
+  }
+  ourOnlyExamples = ourOnlyDefaults.filter(function(exampleId) {
+    return !!ourOnlyPrompts[exampleId];
   });
-  if (ourOnlyExamples.length > 1) ourOnlyExamples.pop();
+  if (!ourOnlyExamples.length) ourOnlyExamples = ourOnlyDefaults.slice();
   selectedOurOnly = ourOnlyExamples[0] || '';
   renderOurOnlyButtons();
   updateOurOnly();
