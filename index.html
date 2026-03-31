@@ -257,6 +257,46 @@
     .hero-buttons a:hover { color: #3b7dd8; }
     .hero-buttons a svg { width: 18px; height: 18px; }
 
+    /* ---- BibTeX Section ---- */
+    .bibtex-section {
+      text-align: center;
+    }
+    .bibtex-section h2 {
+      font-family: 'Google Sans', 'Noto Sans', 'Inter', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: #222;
+    }
+    .bibtex-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 32px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.88rem;
+      color: #000;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-all;
+      text-align: left;
+      position: relative;
+    }
+    .bibtex-copy {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #f3f5f9;
+      border: 1px solid #e0e4ea;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      color: #555;
+      transition: background 0.2s;
+    }
+    .bibtex-copy:hover { background: #e0e4ea; }
+
     /* ---- Section Box ---- */
     .section-box {
       border: none;
@@ -264,6 +304,7 @@
       padding: 40px 36px 32px;
       margin-bottom: 32px;
       background: #f4f7fc;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     }
     @media (max-width: 768px) {
       .section-box { padding: 24px 16px 20px; }
@@ -292,9 +333,17 @@
     </div>
     
     <div class="hero-buttons">
+      <a href="https://arxiv.org/pdf/2603.25707" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M8 12h8v2H8zm0 4h5v2H8z"/></svg>
+        PDF
+      </a>
       <a href="https://arxiv.org/abs/2603.25707" target="_blank" rel="noopener noreferrer">
         <svg role="img" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.8423 0a1.0037 1.0037 0 0 0-.922.6078c-.1536.3687-.0438.6275.2938 1.1113l6.9185 8.3597-1.0223 1.1058a1.0393 1.0393 0 0 0 .003 1.4229l1.2292 1.3135-5.4391 6.4444c-.2803.299-.4538.823-.2971 1.1986a1.0253 1.0253 0 0 0 .9585.635.9133.9133 0 0 0 .6891-.3405l5.783-6.126 7.4902 8.0051a.8527.8527 0 0 0 .6835.2597.9575.9575 0 0 0 .8777-.6138c.1577-.377-.017-.7502-.306-1.1407l-7.0518-8.3418 1.0632-1.13a.9626.9626 0 0 0 .0089-1.3165L4.6336.4639s-.3733-.4535-.768-.463zm0 .272h.0166c.2179.0052.4874.2715.5644.3639l.005.006.0052.0055 10.169 10.9905a.6915.6915 0 0 1-.0072.945l-1.0666 1.133-1.4982-1.7724-8.5994-10.39c-.3286-.472-.352-.6183-.2592-.841a.7307.7307 0 0 1 .6704-.4401Zm14.341 1.5701a.877.877 0 0 0-.6554.2418l-5.6962 6.1584 1.6944 1.8319 5.3089-6.5138c.3251-.4335.479-.6603.3247-1.0292a1.1205 1.1205 0 0 0-.9763-.689zm-7.6557 12.2823 1.3186 1.4135-5.7864 6.1295a.6494.6494 0 0 1-.4959.26.7516.7516 0 0 1-.706-.4669c-.1119-.2682.0359-.6864.2442-.9083l.0051-.0055.0047-.0055z"/></svg>
         arXiv
+      </a>
+      <a href="#bibtex" onclick="event.preventDefault();document.getElementById('bibtex').scrollIntoView({behavior:'smooth'});">
+        <svg viewBox="0 0 448 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M448 296c0 66.3-53.7 120-120 120h-8c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H320c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v136zm-256 0c0 66.3-53.7 120-120 120H64c-17.7 0-32-14.3-32-32s14.3-32 32-32h8c30.9 0 56-25.1 56-56v-8H64c-35.3 0-64-28.7-64-64V160c0-35.3 28.7-64 64-64h64c35.3 0 64 28.7 64 64v136z"/></svg>
+        BibTeX
       </a>
     </div>
   </div>
@@ -935,12 +984,42 @@
   </div>
 </div>
 
+<!-- ================================================================ -->
+<!-- BIBTEX                                                            -->
+<!-- ================================================================ -->
+<div class="section" id="bibtex">
+  <div class="container">
+    <div class="section-box">
+      <div class="bibtex-section">
+        <h2>BibTeX</h2>
+        <div class="bibtex-box" id="bibtex-code"><button class="bibtex-copy" onclick="copyBibtex()">Copy</button>@article{phung2026trace,
+    title={TRACE: Object Motion Editing in Videos with First-Frame Trajectory Guidance},
+    author={Phung, Quynh and Mai, Long and Ham, Cusuh and Liu, Feng and Huang, Jia-Bin and Mahapatra, Aniruddha},
+    journal={arXiv preprint arXiv:2603.25707},
+    year={2026}
+}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div style="height:60px;"></div>
 
 <!-- ================================================================ -->
 <!-- JAVASCRIPT                                                       -->
 <!-- ================================================================ -->
 <script>
+/* ---- Copy BibTeX ---- */
+function copyBibtex() {
+  var box = document.getElementById('bibtex-code');
+  var text = box.textContent.replace('Copy', '').trim();
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = box.querySelector('.bibtex-copy');
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
 /* ---- Scroll helper ---- */
 function scrollToSection(id) {
   var el = document.getElementById(id);
