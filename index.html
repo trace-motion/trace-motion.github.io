@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TRACE: Object Motion Editing in Videos</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,15 +27,16 @@
       padding: 64px 0 24px;
     }
     .hero h1 {
-      font-size: 2.4rem;
-      font-weight: 800;
+      font-family: 'Google Sans', 'Noto Sans', 'Inter', sans-serif;
+      font-size: 3.2rem;
+      font-weight: bolder;
       letter-spacing: -0.02em;
-      line-height: 1.2;
+      line-height: 1.15;
       margin-bottom: 12px;
-      color: #111;
+      color: #222;
     }
     .hero .sub { font-size: 1.15rem; color: #555; margin-bottom: 4px; font-weight: 500; }
-    .hero .sub a { color: inherit; text-decoration: none; }
+    .hero .sub a { color: #3b7dd8; text-decoration: none; }
     .hero .sub a:hover { text-decoration: underline; }
     .hero .sub2 { font-size: 1rem; color: #888; }
 
@@ -75,10 +77,8 @@
 
     /* ---- Section ---- */
     .section {
-      padding: 52px 0;
-      border-top: 1px solid #e6e8ec;
+      padding: 28px 0;
     }
-    .section:first-of-type { border-top: none; }
     .section-title {
       font-size: 1.55rem;
       font-weight: 700;
@@ -194,7 +194,7 @@
 
     /* ---- Responsive ---- */
     @media (max-width: 768px) {
-      .hero h1 { font-size: 1.6rem; }
+      .hero h1 { font-size: 2.2rem; }
       .video-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
       .video-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
       .input-row { flex-direction: column; }
@@ -225,6 +225,49 @@
     }
     .nav-links a:hover { border-bottom-color: #3b7dd8; }
     .nav-links .sep { color: #ccc; user-select: none; }
+
+    /* ---- Title Gradient ---- */
+    .title-gradient {
+      background: linear-gradient(135deg, #6a5acd, #dc143c, #8a2be2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ---- Hero Buttons ---- */
+    .hero-buttons {
+      display: inline-flex;
+      gap: 24px;
+      align-items: center;
+      background: #f3f5f9;
+      border-radius: 999px;
+      padding: 12px 36px;
+      margin-top: 20px;
+    }
+    .hero-buttons a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #333;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .hero-buttons a:hover { color: #3b7dd8; }
+    .hero-buttons a svg { width: 18px; height: 18px; }
+
+    /* ---- Section Box ---- */
+    .section-box {
+      border: none;
+      border-radius: 20px;
+      padding: 40px 36px 32px;
+      margin-bottom: 32px;
+      background: #f4f7fc;
+    }
+    @media (max-width: 768px) {
+      .section-box { padding: 24px 16px 20px; }
+    }
   </style>
 </head>
 <body>
@@ -234,7 +277,7 @@
 <!-- ================================================================ -->
 <div class="hero">
   <div class="container">
-    <h1>TRACE: Object Motion Editing in Videos with First-Frame Trajectory Guidance</h1>
+    <h1><span class="title-gradient">TRACE:</span> Object Motion Editing in Videos with First-Frame Trajectory Guidance</h1>
     <div class="sub" style="margin-bottom:10px;">
       <a href="https://qqphung.github.io/" target="_blank" rel="noopener noreferrer">Quynh Phung</a><sup>1*</sup> &nbsp;&nbsp;
       <a href="https://mai-t-long.com/" target="_blank" rel="noopener noreferrer">Long Mai</a><sup>2</sup> &nbsp;&nbsp;
@@ -248,15 +291,12 @@
       <sup>2</sup> Adobe Research
     </div>
     
-    <!-- <div class="nav-links" style="margin-top:24px;">
-      <a href="#sec-our-single">Our Results (First-Frame Path Design)</a> <span class="sep">|</span>
-      <a href="#sec-our-multi">Multiple Path Designs for Same Input</a> <span class="sep">|</span>
-      <a href="#sec-baselines">Full Pipeline Comparison with Baselines</a> <span class="sep">|</span>
-      <a href="#sec-application">Applications</a> <span class="sep">|</span>
-      <a href="#sec-two-objects">Zero shot multi object editing</a> <span class="sep">|</span>
-      <a href="#sec-stage1">Cross-View Motion Transformation - Baseline Comparison</a> <span class="sep">|</span>
-      <a href="#sec-stage2">Video Resynthesis - Baseline Comparison</a>
-    </div> -->
+    <div class="hero-buttons">
+      <a href="https://arxiv.org/abs/2603.25707" target="_blank" rel="noopener noreferrer">
+        <svg role="img" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M3.8423 0a1.0037 1.0037 0 0 0-.922.6078c-.1536.3687-.0438.6275.2938 1.1113l6.9185 8.3597-1.0223 1.1058a1.0393 1.0393 0 0 0 .003 1.4229l1.2292 1.3135-5.4391 6.4444c-.2803.299-.4538.823-.2971 1.1986a1.0253 1.0253 0 0 0 .9585.635.9133.9133 0 0 0 .6891-.3405l5.783-6.126 7.4902 8.0051a.8527.8527 0 0 0 .6835.2597.9575.9575 0 0 0 .8777-.6138c.1577-.377-.017-.7502-.306-1.1407l-7.0518-8.3418 1.0632-1.13a.9626.9626 0 0 0 .0089-1.3165L4.6336.4639s-.3733-.4535-.768-.463zm0 .272h.0166c.2179.0052.4874.2715.5644.3639l.005.006.0052.0055 10.169 10.9905a.6915.6915 0 0 1-.0072.945l-1.0666 1.133-1.4982-1.7724-8.5994-10.39c-.3286-.472-.352-.6183-.2592-.841a.7307.7307 0 0 1 .6704-.4401Zm14.341 1.5701a.877.877 0 0 0-.6554.2418l-5.6962 6.1584 1.6944 1.8319 5.3089-6.5138c.3251-.4335.479-.6603.3247-1.0292a1.1205 1.1205 0 0 0-.9763-.689zm-7.6557 12.2823 1.3186 1.4135-5.7864 6.1295a.6494.6494 0 0 1-.4959.26.7516.7516 0 0 1-.706-.4669c-.1119-.2682.0359-.6864.2442-.9083l.0051-.0055.0047-.0055z"/></svg>
+        arXiv
+      </a>
+    </div>
   </div>
 </div>
 
@@ -264,17 +304,24 @@
 <!-- ================================================================ -->
 <!-- TEASER VIDEO                                                      -->
 <!-- ================================================================ -->
-<div class="section">
-  <div class="container" style="text-align:center;">
-    <!-- <h2 class="section-title">Teaser</h2> -->
-    <video
-      src="resources/video_teaser/web_teaser3.mp4"
-      autoplay
-      loop
-      muted
-      playsinline
-      style="width:100%;max-width:960px;border-radius:2px;"
-    ></video>
+<div class="section" style="padding-top:0;">
+  <div class="container">
+    <div style="text-align:center;">
+      <h2 class="section-title" style="margin-bottom:12px;">Teaser</h2>
+      <video
+        src="resources/video_teaser/web_teaser3_new.mp4"
+        autoplay
+        loop
+        muted
+        playsinline
+        style="width:calc(100% - 20px);max-width:960px;border-radius:12px;"
+      ></video>
+      <div style="max-width:860px;margin:18px auto 0;text-align:left;font-size:0.92rem;color:#555;line-height:1.7;">
+        <p><strong>Step 1:</strong> Given an input video, the user draws a trajectory on the first frame to specify the desired object motion.</p>
+        <p style="margin-top:6px;"><strong>Step 2:</strong> Our cross-view motion transformation module converts the first-frame trajectory into dense per-frame motion correspondences across all video frames by accounting for the camera motion in the video.</p>
+        <p style="margin-top:6px;"><strong>Step 3:</strong> A video resynthesis model generates the final edited video, moving the object along the specified path while preserving the visual quality of the original input video and seamlessly inpainting the region where the object previously appeared.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -283,6 +330,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-our-single">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Our Results (First-Frame Path Design)</h2>
     <div class="preview-gallery" id="our-only-buttons">
       <!-- Thumbs rendered dynamically -->
@@ -308,7 +356,7 @@
         </div>
       </div>
     </div>
-    <p class="section-note">Each example shows: input video, first frame with trajectory, and edited video.</p>
+    </div>
   </div>
 </div>
 
@@ -317,6 +365,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-our-multi">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Multiple Path Designs for Same Input</h2>
     <div class="preview-gallery" id="qual-thumbs">
       <div class="preview-thumb thumb-qual active" onclick="selectQualExample('example1')">
@@ -382,6 +431,7 @@
         <div class="v-label">Edited Video</div>
       </div>
     </div>
+    </div>
   </div>
 </div>
 
@@ -390,6 +440,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-baselines">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Full Pipeline Comparison with Baselines</h2>
     <div class="preview-gallery" id="baseline-thumbs">
       <div class="preview-thumb thumb-baseline active" onclick="selectBaselineExample('example1')">
@@ -483,7 +534,7 @@
         </div>
       </div>
     </div>
-    <p class="section-note">The full pipeline editing is applied to the input video, incorporating both cross-view motion transformation and video resynthesis.</p>
+    </div>
   </div>
 </div>
 
@@ -492,6 +543,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-application">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Applications</h2>
 
     <!-- Object Insertion -->
@@ -658,6 +710,7 @@
       </div>
       <div class="v-label">Edited Video</div>
     </div>
+    </div>
   </div>
 </div>
 
@@ -666,6 +719,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-two-objects">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Zero shot multi object editing</h2>
     <div class="preview-gallery" id="twoobj-thumbs">
       <div class="preview-thumb thumb-twoobj active" onclick="selectTwoObj('example1')">
@@ -696,7 +750,7 @@
         </video>
       </div>
     </div>
-    <p class="section-note">Even though our method is trained on single object editing, it can be applied to multi object editing with zero-shot manner.</p>
+    </div>
   </div>
 </div>
 
@@ -705,8 +759,9 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-stage1">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Cross-View Motion Transformation - Baseline Comparison</h2>
-    
+
     <div class="preview-gallery" id="stage1-thumbs">
       <div class="preview-thumb thumb-stage1 active" onclick="selectStage1('example1')">
         <video src="resources/stage1/example1/input.mp4" autoplay muted loop playsinline></video>
@@ -762,7 +817,7 @@
         </div>
       </div>
     </div>
-    <p class="section-note">The red point is marked to highlight a reference point for easy to draw correspondance.</p>
+    </div>
   </div>
 </div>
 
@@ -771,6 +826,7 @@
 <!-- ================================================================ -->
 <div class="section" id="sec-stage2">
   <div class="container">
+    <div class="section-box">
     <h2 class="section-title">Video Resynthesis - Baseline Comparison</h2>
     <div class="preview-gallery" id="stage2-thumbs">
       <div class="preview-thumb thumb-stage2 active" onclick="selectStage2('example1')">
@@ -875,7 +931,7 @@
         </div>
       </div>
     </div>
-    <p class="section-note">We compare solely against resynthesis baselines, conditioned on the object boxes from the input video.</p>
+    </div>
   </div>
 </div>
 
